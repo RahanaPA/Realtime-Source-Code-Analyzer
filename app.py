@@ -1,8 +1,7 @@
-from langchain.vectorstores import Chroma
-from src.helper import load_embedding
+from src.helper import load_embeddings,repo_ingestion
 from dotenv import load_dotenv
 import os
-from src.helper import repo_ingestion
+
 from flask import Flask, render_template, jsonify, request
 
 from langchain_groq import ChatGroq
@@ -27,9 +26,7 @@ GROQ_API_KEY=os.environ.get('GROQ_API_KEY')
 
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
-embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
-)
+embeddings = load_embeddings()
 
 persist_directory ="db" 
 
@@ -39,7 +36,7 @@ vectordb = Chroma(persist_directory=persist_directory,
 
 retriever = vectordb.as_retriever(
     search_type="mmr",
-    search_kwargs={"k": 3}
+    search_kwargs={"k": 8}
 )
 
 llm = ChatGroq(model="llama-3.3-70b-versatile")
@@ -71,10 +68,6 @@ rag_chain = (
     | StrOutputParser()
 )
 
-# memory = ConversationSummaryMemory(llm=llm, memory_key = "chat_history", return_messages=True)
-# qa = ConversationalRetrievalChain.from_llm(llm, retriever=vectordb.as_retriever(search_type="mmr", search_kwargs={"k":3}), memory=memory)
-
-
 
 @app.route('/', methods=["GET", "POST"])
 def index():
@@ -102,9 +95,6 @@ def chat():
     if input == "clear":
         os.system("rm -rf repo")
 
-    # result = qa(input)
-    # print(result['answer'])
-    # return str(result["answer"])
     result = rag_chain.invoke(input)
     print(result)
     return result
