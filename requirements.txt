@@ -1,8 +1,12 @@
 groq
-tiktoken
+tiktoken 
 chromadb
-langchain==0.0.249
+langchain
+langchain-core
+langchain-community
 flask
 GitPython
-python-dotenv
+python-dotenv 
+sentence-transformers
+langchain_groq
 -e .
